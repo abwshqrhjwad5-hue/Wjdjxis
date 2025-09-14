@@ -1,0 +1,24 @@
+Warning
+Clear-Host
+Write-Output "Run this script on the computer you want to access via RDP"
+Write-Output ""
+
+# Ask
+Write-Output "Remote address can be an IP address or network with CIDR"
+Write-Output "Example: 192.168.0.5 or 192.168.0.0/24"
+Write-Output ""
+$RemoteAddress = Read-Host "Remote Address"
+Write-Output ""
+
+# Registry
+Set-ItemProperty -Path "HKLM:\System\CurrentControlSet\Control\Terminal Server"-Name "fDenyTSConnections" -Value 0
+Set-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows NT\Terminal Services\Client" -Name "fClientDisableUDP" -Value 0
+Set-ItemProperty -Path "HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp" -Name "UserAuthentication" -Value 1
+
+# Firewall
+New-NetFirewallRule -DisplayName "RDP (TCP)" -Direction Inbound -Action Allow -Protocol TCP -LocalPort 3389 -RemoteAddress $RemoteAddress -Profile Any -Enabled True | Out-Null
+New-NetFirewallRule -DisplayName "RDP (UDP)" -Direction Inbound -Action Allow -Protocol UDP -LocalPort 3389 -RemoteAddress $RemoteAddress -Profile Any -Enabled True | Out-Null
+
+# Result
+Write-Output "Done! Now restart the computer"
+Write-Output ""
